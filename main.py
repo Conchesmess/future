@@ -5,7 +5,7 @@
 from datetime import datetime  # Used for dates and times
 # import os  # Used to access environment variables
 from app import app, db  # Import the app and database from the app folder
-from app.routes.secret import my_google_client_id, my_google_client_secret
+# from app.routes.secret import my_google_client_id, my_google_client_secret
 
 if __name__ == '__main__':
     # Create database tables if they don't exist

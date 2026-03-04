@@ -11,6 +11,8 @@ from wtforms.validators import InputRequired  # Validator for required fields
 class StoryForm(FlaskForm):
     title = StringField()  # Title of the story
     content = TextAreaField()  # Story content
+    image = FileField('Image of the future')  # File upload field
+    audio = FileField('Interview Recording')  # File upload field
     submit = SubmitField()  # Submit button
 
 # Form for editing user profile

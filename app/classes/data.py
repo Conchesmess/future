@@ -67,6 +67,9 @@ class Story(db.Model):
     content = db.Column(db.String(1000))  # Story content
     title = db.Column(db.String(100))  # Story title
     createdate = db.Column(db.DateTime, default=datetime.now(timezone.utc))  # When story was created
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Link to user
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # user unique ID
     author = db.relationship('User', back_populates='stories')  # Link to user
+    image = db.Column(db.LargeBinary)
+    audio = db.Column(db.LargeBinary)
+
 

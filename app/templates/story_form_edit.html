@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block body %}
+    <div class="container">
+        <h1>What will the future be like?</h1>
+        {% for field in form.errors %}
+            {% for error in form.errors[field] %}
+                <div class="alert alert-error">
+                    <strong>Error!</strong>{{field}}: {{error}}
+                </div>
+            {% endfor %}
+        {% endfor %}
+        <form method=post  enctype="multipart/form-data" id="storyForm">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="title">Who are you talking to?</label>
+                {{ form.title(class='form-control') }}
+            </div>
+            <div class="form-group">
+                <label for="audio">Audio</label>
+                 {{ form.audio(class='form-control', id='audioInput') }}
+            </div>
+            <div class="form-group">
+                <label for="image">Add a picture of the person you are talking to.</label>
+                <small>You can come back and do this later.</small>
+                {{ form.image(class='form-control') }}
+            </div>
+            <br>
+            <div class="form-control">
+                <label for="content">Response</label>
+                {{ form.content(class='tmce-editor form-control') }}
+            </div>
+            {{ form.submit(class='form-control btn btn-secondary') }}
+        </form>
+        
+    </div>
+
+    {% block javascript %}
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+                var form = document.getElementById('storyForm');
+                form.addEventListener('submit', function(e) {
+                        // Show modal using Bootstrap
+                        var modalHtml = `
+                        <div class="modal fade" id="modal-transcribe" tabindex="-1" aria-labelledby="modalTranscribeLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalTranscribeLabel">Transcribing Audio</h5>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Please wait while we transcribe your audio. This may take a moment for longer recordings.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                        // Insert modal into body if not present
+                        if (!document.getElementById('modal-transcribe')) {
+                                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                        }
+                        var modal = new bootstrap.Modal(document.getElementById('modal-transcribe'));
+                        modal.show();
+                });
+        });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" integrity="sha512-6JR4bbn8rCKvrkdoTJd/VFyXAN4CE9XMtgykPWgKiHjou56YDJxWsi90hAeMTYxNwUnKSQu9JPc3SQUg+aGCHw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script type="text/javascript">
+            tinymce.init({
+                forced_root_block : false,
+                selector: 'textarea.tmce-editor',
+                plugins:'advlist autolink lists link image charmap print preview hr anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking save table contextmenu directionality emoticons template paste textcolor colorpicker textpattern imagetools',
+                toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | forecolor backcolor emoticons',
+                image_advtab: true,
+                image_class_list: [
+                    {title: 'Float left', value: 'float-start mt-1 me-3 mb-3'},
+                    {title: 'Float right', value: 'float-end mt-3 mb-3 ms-3'},
+                ]
+            });
+
+                // Preload audio file into file input if blob URL is present in query params
+                window.addEventListener('DOMContentLoaded', function() {
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.has('audio_blob_url')) {
+                        fetch(params.get('audio_blob_url'))
+                            .then(res => res.blob())
+                            .then(blob => {
+                                const file = new File([blob], 'audio.wav', { type: blob.type });
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(file);
+                                document.getElementById('audioInput').files = dataTransfer.files;
+                            });
+                    }
+                });
+        </script>
+    {% endblock %}
+
+
+{% endblock %}
+
+
+

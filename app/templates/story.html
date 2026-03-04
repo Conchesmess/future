@@ -2,9 +2,20 @@
 
 {% block body %}
 
-<small><a class="btn btn-secondary" href="/story/edit/{{story.id}}">Edit</a> <a class="btn btn-secondary" href="/story/delete/{{story.id}}">Delete</a></small> <br>
+<small>
+	<a class="btn btn-secondary" href="/story/edit/{{story.id}}">Edit</a> 
+	<a class="btn btn-secondary" href="/story/delete/{{story.id}}">Delete</a>
+	<a class="btn btn-secondary" href="/story/retranscribe/{{story.id}}">Retranscribe</a>
+</small> <br>
 <h3>{{story.title}}</h3>
 <b>by {{story.author.fname}} {{story.author.lname}}</b> <br>
+{% if story.audio %}
+
+<audio controls>
+	<source src="data:audio;base64,{{base64encode(story.audio)}}" type="audio/wav">
+	Your browser does not support the audio element.
+</audio> <br>
+{% endif %}
 {{story.content|safe}} <br>
 
 {% endblock %}
