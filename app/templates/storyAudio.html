@@ -2,18 +2,56 @@
 
 {% block body %}
     
-    <h1>Tell me a Story About the Future.</h1>
-    Hit record and start talking. Hit pause if you need a short break. hit stop when you are done. <br>
-    THEN, hit the "Save" button and fill out the VERY sort form. <br> <br>
-    <div id="controls">
-      <button id="recordButton" class="btn btn-danger">Record</button>
-      <button id="pauseButton" class="btn btn-secondary" disabled>Pause</button>
-      <button id="stopButton" class="btn btn-secondary" disabled>Stop</button>
-      <button id="saveButton" class="btn btn-success" disabled>Save</button>
+    <h1>What will the future be like?</h1>
+    <div class="container">
+      {% for field in form.errors %}
+        {% for error in form.errors[field] %}
+          <div class="alert alert-error">
+            <strong>Error!</strong>{{field}}: {{error}}
+          </div>
+        {% endfor %}
+      {% endfor %}
+      <form method="post" enctype="multipart/form-data" id="storyForm">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+          <label for="title">Who are you talking to?</label>
+          {{ form.title(class='form-control') }}
+        </div>
+        <div class="form-group">
+          <label for="image">Add a picture of the person you are talking to.</label>
+          <small>You can come back and do this later.</small>
+          {{ form.image(class='form-control') }}
+        </div>
+        <br>
+        <div id="controls" class="mb-3">
+          <button id="recordButton" class="btn btn-danger" type="button">Record</button>
+          <button id="pauseButton" class="btn btn-secondary" type="button" disabled>Pause</button>
+          <button id="stopButton" class="btn btn-secondary" type="button" disabled>Stop</button>
+          <!--button id="saveButton" class="btn btn-success" type="button" disabled>Save</button-->
+          <span id="timer" style="margin-left:20px;font-weight:bold;">00:00</span>
+        </div>
+        <div id="formats">Format: start recording to see sample rate</div>
+        <p><strong>Recordings:</strong></p>
+        <ol id="recordingsList"></ol>
+        <div class="form-group">
+          <label for="audio">Audio</label>
+          {{ form.audio(class='form-control') }}
+          <input type="hidden" id="audio_base64" name="audio_base64" />
+          {% if form.audio_base64.data %}
+            <div style="margin-top:10px;">
+              <label>Audio Preview:</label><br>
+              <audio controls src="data:audio/wav;base64,{{ form.audio_base64.data }}"></audio>
+            </div>
+          {% endif %}
+        </div>
+
+        <br>
+        {{ form.submit(class='form-control btn btn-secondary') }}
+      </form>
+      <span id="fileSize" style="margin-left:10px;"></span>
     </div>
-    <div id="formats">Format: start recording to see sample rate</div>
-  	<p><strong>Recordings:</strong></p>
-  	<ol id="recordingsList"></ol>
+
     <br><br><br><br><br>
     <hr>
         <p><small>Made by the <a href="https://addpipe.com" target="_blank">Pipe Audio Recording Platform</a></small></p>
@@ -23,16 +61,44 @@
      <script src="{{ url_for('static', filename='js/recorder.js')}}"></script>
      <script src="{{ url_for('static', filename='js/app.js')}}"></script>
      <script>
-     // Add Save logic for localStorage transfer
+     // Timer logic only (pre-localStorage implementation)
+     let timerInterval = null;
+     let timerSeconds = 0;
+     function updateTimerDisplay() {
+       const timer = document.getElementById('timer');
+       const minutes = Math.floor(timerSeconds / 60);
+       const seconds = timerSeconds % 60;
+       timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+     }
+     function startTimer() {
+       if (!timerInterval) {
+         timerInterval = setInterval(() => {
+           timerSeconds++;
+           updateTimerDisplay();
+         }, 1000);
+       }
+     }
+     function pauseTimer() {
+       if (timerInterval) {
+         clearInterval(timerInterval);
+         timerInterval = null;
+       }
+     }
+     function stopTimer() {
+       pauseTimer();
+       timerSeconds = 0;
+       updateTimerDisplay();
+     }
      document.addEventListener('DOMContentLoaded', function() {
+       document.getElementById('recordButton').addEventListener('click', startTimer);
+       document.getElementById('pauseButton').addEventListener('click', pauseTimer);
+       document.getElementById('stopButton').addEventListener('click', stopTimer);
+
+       // Save logic: convert audio blob to base64 and set hidden input before form submit
        var saveButton = document.getElementById('saveButton');
        var recordingsList = document.getElementById('recordingsList');
        var audioBlob = null;
 
-       // Enable Save button when a recording is available
-       // This assumes app.js pushes <li> with <audio> and download link to recordingsList
-       // and sets a global variable or exposes the blob
-       // We'll hook into the download link for the latest recording
        function updateSaveButton() {
          var items = recordingsList.getElementsByTagName('li');
          if (items.length > 0) {
@@ -40,7 +106,6 @@
            var link = lastItem.querySelector('a');
            if (link && link.href.startsWith('blob:')) {
              saveButton.disabled = false;
-             // Fetch the blob from the blob URL
              fetch(link.href)
                .then(res => res.blob())
                .then(blob => {
@@ -49,22 +114,76 @@
            }
          }
        }
-
-       // Listen for new recordings
        var observer = new MutationObserver(updateSaveButton);
        observer.observe(recordingsList, { childList: true });
 
-       saveButton.addEventListener('click', function() {
-         if (!audioBlob) return;
+       saveButton.addEventListener('click', function(e) {
+         if (!audioBlob) {
+           e.preventDefault();
+           return;
+         }
+         e.preventDefault(); // Prevent default submit
          var reader = new FileReader();
          reader.onloadend = function() {
-           var base64Audio = reader.result.split(',')[1]; // Remove data:audio/wav;base64,
-           localStorage.setItem('newStoryAudio', base64Audio);
-           window.location.href = '/story/new';
+           var base64Audio = reader.result.split(',')[1];
+           document.getElementById('audio_base64').value = base64Audio;
+           // Show transcribing modal before form submit
+           var modalHtml = `
+           <div class="modal fade" id="modal-transcribe" tabindex="-1" aria-labelledby="modalTranscribeLabel" aria-hidden="true">
+               <div class="modal-dialog">
+                   <div class="modal-content">
+                       <div class="modal-header">
+                           <h5 class="modal-title" id="modalTranscribeLabel">Transcribing Audio</h5>
+                       </div>
+                       <div class="modal-body">
+                           <p>Please wait while we transcribe your audio. This may take a moment for longer recordings.</p>
+                       </div>
+                   </div>
+               </div>
+           </div>`;
+           if (!document.getElementById('modal-transcribe')) {
+               document.body.insertAdjacentHTML('beforeend', modalHtml);
+           }
+           var modal = new bootstrap.Modal(document.getElementById('modal-transcribe'));
+           modal.show();
+           setTimeout(function() {
+             document.querySelector('input[type="submit"]').disabled = false;
+             document.getElementById('storyForm').submit();
+           }, 500); // Give modal time to show
          };
          reader.readAsDataURL(audioBlob);
        });
      });
      </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal logic for transcription
+        var form = document.getElementById('storyForm');
+        form.addEventListener('submit', function(e) {
+            var modalHtml = `
+            <div class="modal fade" id="modal-transcribe" tabindex="-1" aria-labelledby="modalTranscribeLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalTranscribeLabel">Transcribing Audio</h5>
+                        </div>
+                        <div class="modal-body">
+                            <p>Please wait while we transcribe your audio. This may take a moment for longer recordings.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            if (!document.getElementById('modal-transcribe')) {
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }
+            var modal = new bootstrap.Modal(document.getElementById('modal-transcribe'));
+            modal.show();
+        });
+
+        // ...existing code...
+    });
+    </script>
+
 
 {% endblock %}

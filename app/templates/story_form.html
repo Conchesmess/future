@@ -16,7 +16,16 @@
                 <label for="title">Who are you talking to?</label>
                 {{ form.title(class='form-control') }}
             </div>
-
+                        <div class="form-group">
+                                <label for="audio">Audio</label>
+                                {{ form.audio(class='form-control') }}
+                                {% if form.audio_base64.data %}
+                                    <div style="margin-top:10px;">
+                                        <label>Audio Preview:</label><br>
+                                        <audio controls src="data:audio/wav;base64,{{ form.audio_base64.data }}"></audio>
+                                    </div>
+                                {% endif %}
+                        </div>
             <div class="form-group">
                 <label for="image">Add a picture of the person you are talking to.</label>
                 <small>You can come back and do this later.</small>
@@ -57,35 +66,7 @@
             modal.show();
         });
 
-        // Check for audio in localStorage and set WTForms hidden field + playback widget
-        let base64Audio = localStorage.getItem('newStoryAudio');
-        if (base64Audio) {
-            // Set value of WTForms-managed hidden field
-            let wtformsHidden = document.getElementsByName('audio_base64')[0];
-            if (wtformsHidden) {
-                wtformsHidden.value = base64Audio;
-            }
-
-            // Add playback widget
-            let audio = document.createElement('audio');
-            audio.controls = true;
-            audio.src = 'data:audio/wav;base64,' + base64Audio;
-            form.appendChild(audio);
-
-            // Calculate and display file size in MB
-            var fileSizeSpan = document.getElementById('fileSize');
-            if (fileSizeSpan) {
-                // base64 size calculation: 1 char = 6 bits, so size in bytes = (length * 3/4) - padding
-                var base64Length = base64Audio.length;
-                var padding = (base64Audio.endsWith('==')) ? 2 : (base64Audio.endsWith('=')) ? 1 : 0;
-                var sizeBytes = base64Length * 3 / 4 - padding;
-                var sizeMB = (sizeBytes / (1024 * 1024)).toFixed(2);
-                fileSizeSpan.textContent = `File size: ${sizeMB} MB`;
-            }
-
-            // Clear localStorage after use
-            localStorage.removeItem('newStoryAudio');
-        }
+        // ...existing code...
     });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" integrity="sha512-6JR4bbn8rCKvrkdoTJd/VFyXAN4CE9XMtgykPWgKiHjou56YDJxWsi90hAeMTYxNwUnKSQu9JPc3SQUg+aGCHw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

@@ -112,7 +112,26 @@ function stopRecording() {
 	gumStream.getAudioTracks()[0].stop();
 
 	//create the wav blob and pass it on to createDownloadLink
-	rec.exportWAV(createDownloadLink);
+	rec.exportWAV(function(blob) {
+		createDownloadLink(blob);
+		// Set base64 in hidden field
+		var reader = new FileReader();
+		reader.onloadend = function() {
+			var base64Audio = reader.result.split(',')[1];
+			var base64Input = document.getElementById('audio_base64');
+			if (base64Input) base64Input.value = base64Audio;
+		};
+		reader.readAsDataURL(blob);
+
+		// Optionally set file input for file picker
+		var fileInput = document.querySelector('input[type="file"][name="audio"]');
+		if (fileInput) {
+			// Create a DataTransfer to set the file input
+			var dt = new DataTransfer();
+			dt.items.add(new File([blob], 'recording.wav', {type: 'audio/wav'}));
+			fileInput.files = dt.files;
+		}
+	});
 }
 
 function createDownloadLink(blob) {
@@ -146,16 +165,17 @@ function createDownloadLink(blob) {
 	li.appendChild(link);
 	
 	//upload link
-	//var upload = document.createElement('a');
-	//upload.href="/story/new?audio_blob_url="+url+"";
-	//upload.innerHTML = "Save";
-	//upload.className = "btn btn-primary"
-	//upload.addEventListener("click", function(event){
-	  //event.preventDefault();
-	  //window.location = upload.href;
-	//});
-	//li.appendChild(document.createTextNode (" "))//add a space in between
-	//li.appendChild(upload)//add the upload link to li
+
+	// var upload = document.createElement('a');
+	// upload.href="/story/new?audio_blob_url="+url;
+	// upload.innerHTML = "Save";
+	// upload.className = "btn btn-primary"
+	// upload.addEventListener("click", function(event){
+	//   event.preventDefault();
+	//   window.location = upload.href;
+	// });
+	// li.appendChild(document.createTextNode (" "))//add a space in between
+	// li.appendChild(upload)//add the upload link to li
 
 	//add the li element to the ol
 	recordingsList.appendChild(li);

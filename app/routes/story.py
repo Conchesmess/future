@@ -1,5 +1,6 @@
-# This file handles the "story" features in the app.
-# Users can create, view, edit, and delete stories.
+from app.classes.flaskmodals import render_template_modal
+
+
 
 from app import app, db, confirm_delete  # Import app, database, and delete helper
 from app.classes.data import Story  # Story model
@@ -8,6 +9,7 @@ from datetime import datetime, timezone  # For dates and times
 from flask import redirect, flash, session, url_for, render_template, request
 from flask_login import current_user, login_required  # Login tools
 import io
+from werkzeug.datastructures import FileStorage
 from vosk import Model, KaldiRecognizer
 import soundfile as sf
 import json
@@ -15,6 +17,7 @@ import librosa
 import tempfile
 import numpy as np
 import base64
+import requests
 
 # Path to your Vosk model directory (adjust as needed)
 VOSK_MODEL_PATH = "models/vosk-model-small-en-us-0.15"
@@ -56,35 +59,32 @@ def transcribe_with_vosk(audio_bytes):
         return text
         
 @app.route('/story/new', methods=['GET', 'POST'])
-@app.route('/story/new/<blob>', methods=['GET', 'POST'])    
 @login_required
-def newStory(blob=None):
-    print('MAX_CONTENT_LENGTH:', app.config.get('MAX_CONTENT_LENGTH'))
-    print('Request content_length:', request.content_length)
+def newStory():
+
     form = StoryForm()
+
     if form.validate_on_submit():
         audio_bytes = None
         # Handle file upload from form
-        '''
         if form.audio.data:
+            print("file in audio field of form")
             audio_bytes = form.audio.data.read()
-        elif blob:
-            if isinstance(blob, str):
-                try:
-                    audio_bytes = base64.b64decode(blob)
-                except Exception:
-                    audio_bytes = None
-            else:
-                audio_bytes = blob
-        '''
-        if form.audio_base64.data:
-            audio_bytes = base64.b64decode(form.audio_base64.data)
+        elif form.audio_base64.data:
+            print("audio_base64 field present")
+            try:
+                audio_bytes = base64.b64decode(form.audio_base64.data)
+            except Exception as e:
+                print(f"Failed to decode base64 audio: {e}")
+                audio_bytes = None
+
         transcript = None
         if audio_bytes:
             try:
                 transcript = transcribe_with_vosk(audio_bytes)
             except Exception as e:
                 transcript = f"[Transcription failed: {e}]"
+            print(transcript)
         newStory = Story(
             title=form.title.data,
             content=transcript if transcript else form.content.data,
@@ -97,7 +97,7 @@ def newStory(blob=None):
         db.session.add(newStory)
         db.session.commit()
         return redirect(url_for("story", id=newStory.id))
-    return render_template("story_form.html", form=form)
+    return render_template("storyAudio.html", form=form)
 
 @app.route('/story/list')
 def stories():
