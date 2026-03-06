@@ -127,29 +127,6 @@
          reader.onloadend = function() {
            var base64Audio = reader.result.split(',')[1];
            document.getElementById('audio_base64').value = base64Audio;
-           // Show transcribing modal before form submit
-           var modalHtml = `
-           <div class="modal fade" id="modal-transcribe" tabindex="-1" aria-labelledby="modalTranscribeLabel" aria-hidden="true">
-               <div class="modal-dialog">
-                   <div class="modal-content">
-                       <div class="modal-header">
-                           <h5 class="modal-title" id="modalTranscribeLabel">Transcribing Audio</h5>
-                       </div>
-                       <div class="modal-body">
-                           <p>Please wait while we transcribe your audio. This may take a moment for longer recordings.</p>
-                       </div>
-                   </div>
-               </div>
-           </div>`;
-           if (!document.getElementById('modal-transcribe')) {
-               document.body.insertAdjacentHTML('beforeend', modalHtml);
-           }
-           var modal = new bootstrap.Modal(document.getElementById('modal-transcribe'));
-           modal.show();
-           setTimeout(function() {
-             document.querySelector('input[type="submit"]').disabled = false;
-             document.getElementById('storyForm').submit();
-           }, 500); // Give modal time to show
          };
          reader.readAsDataURL(audioBlob);
        });

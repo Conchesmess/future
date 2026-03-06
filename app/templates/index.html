@@ -5,7 +5,10 @@
 <h1>Tell Me A Story About The Future</h1>
 
 ...text and stuff about this project... <br><br>
-
+{% if current_user.is_authenticated %}
 <a href="/story/new" class="btn btn-primary">What is your story?</a>
+{% else %}
+<a href="/login" class="btn btn-primary">login with your ousd address to tell us your story?</a>
+{% endif %}
 
 {% endblock %}

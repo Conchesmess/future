@@ -5,27 +5,26 @@ from app.classes.flaskmodals import render_template_modal
 from app import app, db, confirm_delete  # Import app, database, and delete helper
 from app.classes.data import Story  # Story model
 from app.classes.forms import StoryForm  # Form for stories
-from datetime import datetime, timezone  # For dates and times
+#from datetime import datetime, timezone  # For dates and times
 from flask import redirect, flash, session, url_for, render_template, request
-from flask_login import current_user, login_required  # Login tools
-import io
-from werkzeug.datastructures import FileStorage
+from flask_login import current_user, login_required
+#import io
+#from werkzeug.datastructures import FileStorage
 from vosk import Model, KaldiRecognizer
 import soundfile as sf
 import json
-import librosa
 import tempfile
 import numpy as np
 import base64
-import requests
+import librosa
+
 
 # Path to your Vosk model directory (adjust as needed)
 VOSK_MODEL_PATH = "models/vosk-model-small-en-us-0.15"
 
 # Helper function for Vosk transcription
 def transcribe_with_vosk(audio_bytes):
-    import tempfile
-    import numpy as np
+
     with tempfile.NamedTemporaryFile(suffix=".wav") as tmp:
         tmp.write(audio_bytes)
         tmp.flush()
@@ -37,7 +36,6 @@ def transcribe_with_vosk(audio_bytes):
             print("[VOSK] Converted to mono.")
         # Resample to 16kHz if needed
         if samplerate != 16000:
-            import librosa
             data = librosa.resample(data, orig_sr=samplerate, target_sr=16000)
             samplerate = 16000
             print("[VOSK] Resampled to 16kHz.")

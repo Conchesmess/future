@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 
 {% block body %}
@@ -18,38 +19,38 @@
 {% endif %}
 {{story.content|safe}} <br>
 
-
-
+<!-- Bootstrap modal for retranscribe -->
+<div class="modal fade" id="modal-retranscribe" tabindex="-1" aria-labelledby="modalRetranscribeLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalRetranscribeLabel">Retranscribing Audio</h5>
+			</div>
+			<div class="modal-body">
+				<p>Please wait while we retranscribe your audio. This may take a moment for longer recordings.</p>
+			</div>
+		</div>
+	</div>
+</div>
+{% block javascript %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var retranscribeBtn = document.getElementById('retranscribeBtn');
-    if (retranscribeBtn) {
-        retranscribeBtn.addEventListener('click', function(e) {
-        var modalHtml = `
-            <div class="modal fade" id="modal-transcribe" tabindex="-1" aria-labelledby="modalTranscribeLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalTranscribeLabel">Transcribing Audio</h5>
-                        </div>
-                        <div class="modal-body">
-                            <p>Please wait while we transcribe your audio. This may take a moment for longer recordings.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-            if (!document.getElementById('modal-transcribe')) {
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-            }            
-            var modal = new bootstrap.Modal(document.getElementById('modal-retranscribe'));
-            modal.show();
-            setTimeout(function() {
-                window.location.href = retranscribeBtn.href;
-            }, 1000);
-        });
-    }
+	var retranscribeBtn = document.getElementById('retranscribeBtn');
+	if (retranscribeBtn) {
+		retranscribeBtn.addEventListener('click', function(e) {
+			e.preventDefault();
+			var modal = new bootstrap.Modal(document.getElementById('modal-retranscribe'));
+			modal.show();
+			// Redirect after a short delay, modal stays until page refresh
+			setTimeout(function() {
+				window.location.href = retranscribeBtn.href;
+			}, 1000);
+		});
+	}
 });
 </script>
+{% endblock %}
+
 {% endblock %}
 
 
