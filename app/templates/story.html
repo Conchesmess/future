@@ -5,7 +5,7 @@
 <small>
 	<a class="btn btn-secondary" href="/story/edit/{{story.id}}">Edit</a> 
 	<a class="btn btn-secondary" href="/story/delete/{{story.id}}">Delete</a>
-	<a class="btn btn-secondary" href="/story/retranscribe/{{story.id}}">Retranscribe</a>
+	<a class="btn btn-secondary" id="retranscribeBtn" href="/story/retranscribe/{{story.id}}">Retranscribe</a>
 </small> <br>
 <h3>{{story.title}}</h3>
 <b>by {{story.author.fname}} {{story.author.lname}}</b> <br>
@@ -18,4 +18,36 @@
 {% endif %}
 {{story.content|safe}} <br>
 
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var retranscribeBtn = document.getElementById('retranscribeBtn');
+    if (retranscribeBtn) {
+        retranscribeBtn.addEventListener('click', function(e) {
+            // Show modal using Bootstrap
+            var modalHtml = `
+            <div class="modal fade" id="modal-retranscribe" tabindex="-1" aria-labelledby="modalRetranscribeLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalRetranscribeLabel">Retranscribing Audio</h5>
+                        </div>
+                        <div class="modal-body">
+                            <p>Please wait while we retranscribe your audio. This may take a moment for longer recordings.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            // Insert modal into body if not present
+            if (!document.getElementById('modal-retranscribe')) {
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }
+            var modal = new bootstrap.Modal(document.getElementById('modal-retranscribe'));
+            modal.show();
+        });
+    }
+});
+</script>
 {% endblock %}

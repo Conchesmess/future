@@ -13,6 +13,7 @@ class StoryForm(FlaskForm):
     content = TextAreaField()  # Story content
     image = FileField('Image of the future')  # File upload field
     audio = FileField('Interview Recording')  # File upload field
+    audio_base64 = HiddenField('Audio Base64')  # Hidden field for audio in base64
     submit = SubmitField()  # Submit button
 
 # Form for editing user profile

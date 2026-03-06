@@ -14,6 +14,8 @@ import base64
 
 app = Flask(__name__)
 
+app.config['MAX_CONTENT_LENGTH'] = int(64 * 1024 * 1024 * 1.34)  # for 64MB original file
+
 # Set a secret key for security (change this in real apps!)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 
@@ -100,6 +102,5 @@ def base64encode(img):
     return image
 
 app.jinja_env.globals.update(base64encode=base64encode)
-
 
 from .routes import *

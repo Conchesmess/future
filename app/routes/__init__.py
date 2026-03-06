@@ -4,4 +4,3 @@
 from app.routes.login import *
 from app.routes.story import *
 from app.routes.scopes import *
-from app.routes.secret import *

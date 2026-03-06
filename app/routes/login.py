@@ -14,7 +14,6 @@ from flask_login import login_user, current_user, login_required, logout_user  #
 from is_safe_url  import is_safe_url  # Checks if URLs are safe
 import requests  # For web requests
 from .scopes import scopes  # Google permissions
-from .secret import *
 #import google.oauth2.credentials                
 import google_auth_oauthlib.flow                
 #import googleapiclient.discovery   
@@ -23,25 +22,29 @@ import google_auth_oauthlib.flow
 
 # Set up Google login
 # Google login info
-GOOGLE_CLIENT_CONFIG = {
-    "web": {
-        "client_id": my_google_client_id,
-        "client_secret": my_google_client_secret,
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "redirect_uris": [
-            "https://127.0.0.1:5000/oauth2callback"
-        ]
-    }
-}
+
+# TODO delete this I think
+#GOOGLE_CLIENT_CONFIG = {
+#    "web": {
+#        "client_id": os.environ['future_google_client_id'],
+#        "client_secret": os.environ['future_google_client_id'],
+#        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+#        "token_uri": "https://oauth2.googleapis.com/token",
+#        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+#        "redirect_uris": [
+#            "https://127.0.0.1:5000/oauth2callback",
+#            "https://future-558360858286.us-west1.run.app/oauth2callback",
+#            "https://future.ccpa.ninja/oauth2callback"
+#        ]
+#    }
+#}
 
 oauth = OAuth(app)
 
 google = oauth.register(
     name='google',
-    client_id=my_google_client_id,  # Get client ID from secret.py file
-    client_secret=my_google_client_secret,  # Get client secret
+    client_id=os.environ['future_google_client_id'],  # Get client ID from secret.py file
+    client_secret=os.environ['future_google_secret'],  # Get client secret
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}  # Ask for email and profile info
 )
@@ -60,8 +63,12 @@ def credentials_to_dict(credentials):
 @app.before_request
 def before_request():
 
-    # this checks if the user requests http and if they did it changes it to https
-    if not request.is_secure:
+    # Skip HTTPS redirect for local development (127.0.0.1)
+    if request.host.startswith('127.0.0.1') or request.host.startswith('localhost'):
+        return
+    # Check for HTTPS using X-Forwarded-Proto header (for Google Cloud Run)
+    forwarded_proto = request.headers.get('X-Forwarded-Proto', 'http')
+    if forwarded_proto != 'https':
         url = request.url.replace("http://", "https://", 1)
         code = 301
         return redirect(url, code=code)

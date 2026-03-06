@@ -129,7 +129,7 @@ function createDownloadLink(blob) {
 	au.controls = true;
 	au.src = url;
 
-	//save to disk link
+	//Download to disk link
 	link.href = url;
 	link.download = filename+".wav"; //download forces the browser to donwload the file using the  filename
 	link.className = "btn btn-secondary";
@@ -146,16 +146,16 @@ function createDownloadLink(blob) {
 	li.appendChild(link);
 	
 	//upload link
-	var upload = document.createElement('a');
-	upload.href="/story/new?audio_blob_url="+url+"";
-	upload.innerHTML = "Save";
-	upload.className = "btn btn-primary"
-	upload.addEventListener("click", function(event){
-	  event.preventDefault();
-	  window.location = upload.href;
-	});
-	li.appendChild(document.createTextNode (" "))//add a space in between
-	li.appendChild(upload)//add the upload link to li
+	//var upload = document.createElement('a');
+	//upload.href="/story/new?audio_blob_url="+url+"";
+	//upload.innerHTML = "Save";
+	//upload.className = "btn btn-primary"
+	//upload.addEventListener("click", function(event){
+	  //event.preventDefault();
+	  //window.location = upload.href;
+	//});
+	//li.appendChild(document.createTextNode (" "))//add a space in between
+	//li.appendChild(upload)//add the upload link to li
 
 	//add the li element to the ol
 	recordingsList.appendChild(li);

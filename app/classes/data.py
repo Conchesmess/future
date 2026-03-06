@@ -7,6 +7,7 @@ from flask_login import UserMixin, current_user  # For login features
 from google.oauth2 import id_token  # For Google login
 from google.auth.transport import requests  # For Google login
 from app import db  # Database
+import os
 
 # User model: stores info about each user
 class User(db.Model, UserMixin):
@@ -50,8 +51,7 @@ class User(db.Model, UserMixin):
     def is_valid(self):
         try:
             # Check the Google ID token
-            from app.routes.secret import my_google_client_id
-            idinfo = id_token.verify_oauth2_token(current_user.google_id_token, requests.Request(), my_google_client_id)
+            idinfo = id_token.verify_oauth2_token(current_user.google_id_token, requests.Request(), os.environ['future_google_client_id'])
         except:
             # Invalid token
             return False
