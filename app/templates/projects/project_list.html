@@ -1,0 +1,32 @@
+<!-- This is a blank template.  You can copy this to make a new template page. -->
+
+{% extends 'base.html' %}
+
+{% block body %}
+<h1>Projects</h1>
+
+<table class="table">
+    <tr>
+        <th>Owner</th>
+        <th>Project</th>
+        <th>Learning <br> Materials</th>
+        <th>Milestones (posts)</th>
+    </tr>
+
+{% for proj in projects|sort(attribute='owner.fname,owner.lname') %}
+    <tr>
+        <td>{{proj.owner.fname}} {{proj.owner.lname}}</td>
+        <td><a href="/project/{{proj.id}}">{{proj.name}}</a></td>
+        <td>{% if proj.learning_materials and proj.learning_materials | length > 40 %} Yes {% endif %}</td>
+        <td>
+            {% for m in proj.milestones %}
+            {% if m.name | length > 0 %}
+            {{m.name}} ({{m.posts | length}}) <br>
+            {% endif %}
+            {% endfor %}
+        </td>
+    </tr>
+{% endfor %}
+</table>
+
+{% endblock %}

@@ -30,3 +30,42 @@ class ProfileImageForm(FlaskForm):
     image = FileField('Profile Image')  # File upload field
     submit = SubmitField()  # Submit button
 
+# Form for creating/editing a project
+class ProjectForm(FlaskForm):
+    #title = StringField('Title', validators=[InputRequired()])
+    name = StringField('Project Name', validators=[InputRequired()])
+    description = TextAreaField('Description')
+    status = SelectField('Status', choices=[('In Progress', 'In Progress'), ('Completed', 'Completed'), ('On Hold', 'On Hold')])
+    milestone = StringField('Milestone')
+    course = SelectField('Status', choices=[('CiS6 Enrollment 2026','CiS6 Enrollment 2026')])
+    product = TextAreaField('Product')
+    learning_materials = TextAreaField('Learning Materials')
+    submit = SubmitField('Save Project')
+
+# Form for creating/editing a milestone
+class MilestoneForm(FlaskForm):
+    name = StringField('Title', validators=[InputRequired()])
+    description = TextAreaField('Description')
+    due_date = StringField('Due Date')  # Could use DateField if needed
+    status = SelectField('Status', choices=[('Not Started', 'Not Started'), ('In Progress', 'In Progress'), ('Completed', 'Completed')])
+    submit = SubmitField('Save Milestone')
+
+# Form for creating/editing a project post
+class ProjPostForm(FlaskForm):
+    post_type = SelectField('Post Type', choices=[("","--Choose One--"),('Intention', 'Intention'), ('Reflection', 'Reflection'), ('Discussion', 'Discussion')], validators=[InputRequired()])
+    confidence = SelectField('Confidence', choices=[(0,"--Pick One--"),(1,"Not"),(2,"Low"),(3,"Dunno"),(4,"Good"),(5,"Fo' Sure")])
+    intention = TextAreaField('Intention')
+    satisfaction = SelectField('Confidence', choices=[(0,"--Pick One--"),(1,":("),(2,"Cudda been better"),(3,"Meh"),(4,"Pretty good"),(5,"I killed it")])
+    reflection = TextAreaField('Reflection')
+    discussion = TextAreaField('Discussion')
+    milestone = SelectField('Milestone', choices=[])
+    image_reflection_src = StringField('Image Reflection Src')
+    image_reflection = FileField('Image Reflection')
+    submit = SubmitField('Save Post')
+
+# Form for searching posts by date
+class SearchDatesForm(FlaskForm):
+    start_date = StringField('Start Date', validators=[InputRequired()])
+    end_date = StringField('End Date', validators=[InputRequired()])
+    submit = SubmitField('Search')
+

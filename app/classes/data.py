@@ -72,4 +72,101 @@ class Story(db.Model):
     image = db.Column(db.LargeBinary)
     audio = db.Column(db.LargeBinary)
 
+# Project model: stores info about each project
+class Project(db.Model):
+    __tablename__ = 'projects'
+
+    id = db.Column(db.Integer, primary_key=True)  # Unique ID for each project
+    name = db.Column(db.String(100), nullable=False)  # Project title
+    course = db.Column(db.String(100), nullable=False)
+    product = db.Column(db.String(1000))  # Project description
+    learning_materials = db.Column(db.String(1000))  # Project description
+    description = db.Column(db.String(1000))  # Project description
+    createDateTime = db.Column(db.DateTime, default=datetime.now(timezone.utc))  # Creation date
+    updated_at = db.Column(db.DateTime)  # Last update date
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Owner user ID
+    owner = db.relationship('User', backref='projects')  # Link to user
+    status = db.Column(db.String(50))  # Project status
+    milestone = db.Column(db.String(200))  # Current milestone
+    # Add more fields as needed to match MongoEngine model
+    milestones = db.relationship('Milestone', back_populates='project')
+
+
+    def __repr__(self):
+        return f"<Project {self.title} (Owner ID: {self.owner_id})>"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'created_at': self.createDateTime,
+            'updated_at': self.updated_at,
+            'owner_id': self.owner_id,
+            'status': self.status,
+            'milestone': self.milestone
+        }
+
+# Milestone model: stores info about each project milestone
+class Milestone(db.Model):
+    __tablename__ = 'milestones'
+
+    oid = db.Column(db.Integer, primary_key=True)  # Unique ID for each milestone
+    name = db.Column(db.String(100), nullable=False)  # Milestone title
+    description = db.Column(db.String(500))  # Milestone description
+    due_date = db.Column(db.DateTime)  # Due date for milestone
+    status = db.Column(db.String(50))  # Milestone status
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))  # Associated project
+    project = db.relationship('Project', back_populates='milestones')  # Link to user
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Associated user
+    posts = db.relationship('ProjPost', back_populates='milestone')
+
+
+    def __repr__(self):
+        return f"<Milestone {self.name} (Project ID: {self.project_id})>"
+
+    def to_dict(self):
+        return {
+            'id': self.oid,
+            'name': self.name,
+            'description': self.description,
+            'due_date': self.due_date,
+            'status': self.status,
+            'project_id': self.project_id
+        }
+
+# ProjPost model: stores info about each project post
+class ProjPost(db.Model):
+    __tablename__ = 'projposts'
+
+    id = db.Column(db.Integer, primary_key=True)  # Unique ID for each post
+    post_type = db.Column(db.String(100)) 
+    confidence = db.Column(db.Integer)
+    satisfaction = db.Column(db.Integer)
+    content = db.Column(db.String(2000))  # Post content
+    intention = db.Column(db.String(2000))  # Post content
+    reflection = db.Column(db.String(2000))  # Post content
+    discussion = db.Column(db.String(2000))  # Post content
+    createDateTime = db.Column(db.DateTime, default=datetime.now(timezone.utc))  # Creation date
+    updated_at = db.Column(db.DateTime)  # Last update date
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Author user ID
+    author = db.relationship('User', backref='projposts')  # Link to user
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))  # Associated project
+    milestone_id = db.Column(db.Integer, db.ForeignKey('milestones.oid'))
+    milestone = db.relationship('Milestone', back_populates='posts')
+
+
+    def __repr__(self):
+        return f"<ProjPost (Project ID: {self.project_id}, Author ID: {self.author_id})>"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'content': self.content,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'author_id': self.author_id,
+            'project_id': self.project_id
+        }
+
 
