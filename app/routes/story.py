@@ -14,7 +14,7 @@ from vosk import Model, KaldiRecognizer
 import soundfile as sf
 import json
 import tempfile
-import numpy as np
+#import numpy as np
 import base64
 import librosa
 

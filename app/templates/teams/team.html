@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<a href="/team/list">All Teams</a> <br>
+    {% if current_user in team.members and team.matches == None %}
+        <small><a href="/team/delete/{{team.id}}">Delete Team</a></small>
+    {% endif %}
+<h1>
+    {{team.name}}
+</h1>
+<h2>rank: {{team.rank}}</h2>
+<b>points: {{team.points}}</b>
+<hr>
+<h3>Members</h3>
+{% for member in team.members %}
+    {{member.fname}} {{member.lname}} <br>
+{% endfor %}
+<hr>
+<a href="/team/challenge/new">New Challenge</a> <br>
+<h3>Challenges</h3>
+{% if team.challenges %}
+<b>Challenged</b> <br>
+{% for challenged in team.challenges %}
+    <a href="/team/{{challenged.id}}">{{challenged.name}}</a> 
+    <a href="/team/challenge/delete/{{challenged.id}}">Delete</a>
+    <br>
+{% endfor %}
+{% endif %}
+{% if team.challenged_by %}
+<b>Challenged by</b> <br>
+{% for challenged_by in team.challenged_by %}
+    <a href="/team/{{challenged_by.id}}">{{challenged_by.name}}</a>
+{% endfor %}
+{% endif %}
+<hr>
+<a href="/team/match/new">Record a Match</a> <br>
+<h3>Matches</h3>
+{% if team.matches|length > 0%}
+    {% for match in team.matches %}
+        {% if match.teams[0].id == match.winner_id %}
+            <a href="/team/{{match.teams[0].id}}">{{match.teams[0].name}}</a> {{match.score_winner}} vs <a href="/team/{{match.teams[1].id}}">{{match.teams[1].name}}</a> {{match.score_loser}}
+        {% else %}
+            <a href="/team/{{match.teams[1].id}}">{{match.teams[1].name}}</a> {{match.score_winner}} vs <a href="/team/{{match.teams[0].id}}">{{match.teams[0].name}}</a> {{match.score_loser}}
+        {% endif %}
+        <br>
+    {% endfor %}
+{% else %}
+    No Matches yet <br>
+{% endif %}
+{% endblock %}

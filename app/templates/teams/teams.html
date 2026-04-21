@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<h1>Teams</h1>
+{% if teams %}
+    {% for team in teams %}
+        #{{loop.index}} 
+        <a href="/team/{{team.id}}">{{team.name}}</a> | pts: {{team.points}} | Members: 
+        {% for member in team.members %}
+            {{member.fname}} {{member.lname}}, 
+        {% endfor %} <br>
+    {% endfor %}
+<h3>Open Challenges</h3>
+    {% for team in teams %}
+        {% for challenged in team.challenges %}
+            {{ team.name }} challenged {{ challenged.name }}<br>
+        {% endfor %}    
+    {% endfor %}
+{% else %}
+    <h3>No Teams Yet</h3>
+{% endif %}
+{% endblock %}

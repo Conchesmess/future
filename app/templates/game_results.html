@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<table class="table">
+<tr>
+    <th>Game</th><th>Player 1</th><th>Player 2</th><th>score</th> <th>Winner</th> <th>Date</th>
+</tr>
+{% for r in results %}
+<tr>
+    <td>{{r.game}}</td>
+    {% if r.winner == 'player1' %}
+        <td style="color:green"> <b>{{r.user.fname}} {{r.user.lname}}</b></td>
+        <td> {{r.opponent.fname}} {{r.opponent.lname}} </td>
+    {% elif r.winner == 'player2' %}
+        <td> {{r.user.fname}} {{r.user.lname}}</b></td>
+        <td style="color:green"> <b>{{r.opponent.fname}} {{r.opponent.lname}}</b> </td>
+    {% else %}
+        <td> {{r.user.fname}} {{r.user.lname}}</b></td>
+        <td>{{r.opponent.fname}} {{r.opponent.lname}}</td>   
+    {% endif %} 
+    <td> 
+        {% if r.score %}
+            {{r.score}} 
+        {% else %}
+            ---
+        {% endif %}
+    </td>
+    <td> 
+        {% if r.winner %}
+            {{r.winner}} 
+        {% else %}
+            ---
+        {% endif %}
+    </td>
+    <td> {{ moment(r.played_at).calendar() }} </td>
+</tr>
+
+{% endfor %}
+</table>
+
+
+{% endblock %}

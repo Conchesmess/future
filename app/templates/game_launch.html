@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 text-center">
+        <h2 class="mb-4">{{ display_name }}</h2>
+
+        {% if users %}
+        <div class="mb-4 text-start">
+            <label for="opponentSelect" class="form-label fw-semibold">Select Opponent (Player 2)</label>
+            <select id="opponentSelect" class="form-select">
+                <option value="" disabled selected>-- Choose a player --</option>
+                {% for u in users %}
+                <option value="{{ u.id }}">{{ u.fname }} {{ u.lname }} &mdash; {{ u.email_ousd }}</option>
+                {% endfor %}
+            </select>
+            <div id="opponentError" class="text-danger mt-1 d-none">Please select an opponent first.</div>
+        </div>
+        {% endif %}
+
+        <button class="btn btn-primary btn-lg" onclick="launchGame()">
+            &#9654; Play {{ display_name }}
+        </button>
+    </div>
+</div>
+
+<script>
+function launchGame() {
+    let url = '/games/{{ game_name }}/play/';
+
+    {% if users %}
+    const select = document.getElementById('opponentSelect');
+    const opponentId = select.value;
+    if (!opponentId) {
+        document.getElementById('opponentError').classList.remove('d-none');
+        return;
+    }
+    document.getElementById('opponentError').classList.add('d-none');
+    url += '?opponent_id=' + encodeURIComponent(opponentId);
+    {% endif %}
+
+    const w = 1060;
+    const h = 680;
+    const left = Math.max(0, (screen.width - w) / 2);
+    const top  = Math.max(0, (screen.height - h) / 2);
+    window.open(url, '{{ game_name }}',
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`);
+}
+</script>
+{% endblock %}

@@ -28,8 +28,12 @@ class User(db.Model, UserMixin):
     gid = db.Column(db.String(50))  # Google ID
     role = db.Column(db.String(20))  # ie staff, student
 
-    # Link to stories written by the user
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    team = db.relationship('Team', back_populates='members')
     stories = db.relationship('Story', back_populates='author')
+    projects = db.relationship('Project', back_populates='owner')
+
+
 
     def __repr__(self):
         return f"{self.fname} {self.lname} Role: {self.role}"
@@ -58,13 +62,16 @@ class User(db.Model, UserMixin):
         else:
             # Token is valid
             return True
+        
+
+
 
 # Story model: stores info about each story
 class Story(db.Model):
     __tablename__ = 'story'
     
     id = db.Column(db.Integer, primary_key=True)  # Unique ID for each story
-    content = db.Column(db.String(1000))  # Story content
+    content = db.Column(db.Text())  # Story content
     title = db.Column(db.String(100))  # Story title
     createdate = db.Column(db.DateTime, default=datetime.now(timezone.utc))  # When story was created
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # user unique ID
@@ -80,12 +87,12 @@ class Project(db.Model):
     name = db.Column(db.String(100), nullable=False)  # Project title
     course = db.Column(db.String(100), nullable=False)
     product = db.Column(db.String(1000))  # Project description
-    learning_materials = db.Column(db.String(1000))  # Project description
-    description = db.Column(db.String(1000))  # Project description
+    learning_materials = db.Column(db.Text())  # Project description
+    description = db.Column(db.Text())  # Project description
     createDateTime = db.Column(db.DateTime, default=datetime.now(timezone.utc))  # Creation date
     updated_at = db.Column(db.DateTime)  # Last update date
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Owner user ID
-    owner = db.relationship('User', backref='projects')  # Link to user
+    owner = db.relationship('User', back_populates='projects')  # Link to user
     status = db.Column(db.String(50))  # Project status
     milestone = db.Column(db.String(200))  # Current milestone
     # Add more fields as needed to match MongoEngine model
@@ -113,14 +120,13 @@ class Milestone(db.Model):
 
     oid = db.Column(db.Integer, primary_key=True)  # Unique ID for each milestone
     name = db.Column(db.String(100), nullable=False)  # Milestone title
-    description = db.Column(db.String(500))  # Milestone description
+    description = db.Column(db.String(1000))  # Milestone description
     due_date = db.Column(db.DateTime)  # Due date for milestone
     status = db.Column(db.String(50))  # Milestone status
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))  # Associated project
     project = db.relationship('Project', back_populates='milestones')  # Link to user
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Associated user
     posts = db.relationship('ProjPost', back_populates='milestone')
-
 
     def __repr__(self):
         return f"<Milestone {self.name} (Project ID: {self.project_id})>"
@@ -143,10 +149,10 @@ class ProjPost(db.Model):
     post_type = db.Column(db.String(100)) 
     confidence = db.Column(db.Integer)
     satisfaction = db.Column(db.Integer)
-    content = db.Column(db.String(2000))  # Post content
-    intention = db.Column(db.String(2000))  # Post content
-    reflection = db.Column(db.String(2000))  # Post content
-    discussion = db.Column(db.String(2000))  # Post content
+    content = db.Column(db.Text()) 
+    intention = db.Column(db.Text())  
+    reflection = db.Column(db.Text())  
+    discussion = db.Column(db.Text())  
     createDateTime = db.Column(db.DateTime, default=datetime.now(timezone.utc))  # Creation date
     updated_at = db.Column(db.DateTime)  # Last update date
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Author user ID
@@ -154,6 +160,7 @@ class ProjPost(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))  # Associated project
     milestone_id = db.Column(db.Integer, db.ForeignKey('milestones.oid'))
     milestone = db.relationship('Milestone', back_populates='posts')
+    image = db.Column(db.LargeBinary)
 
 
     def __repr__(self):
@@ -168,5 +175,86 @@ class ProjPost(db.Model):
             'author_id': self.author_id,
             'project_id': self.project_id
         }
+    
+
+# Association table
+team_match = db.Table(
+    'team_match',
+    db.Model.metadata,
+    db.Column('team_id', db.Integer, db.ForeignKey('teams.id'), primary_key=True),
+    db.Column('match_id', db.Integer, db.ForeignKey('matches.id'), primary_key=True)
+)
+
+# Association table for challenges
+team_challenge = db.Table(
+    'team_challenge',
+    db.Model.metadata,
+    db.Column('challenger_id', db.Integer, db.ForeignKey('teams.id'), primary_key=True),
+    db.Column('challenged_id', db.Integer, db.ForeignKey('teams.id'), primary_key=True)
+)
+
+#team.challenges gives you all teams this team has challenged.
+#team.challenged_by gives you all teams that have challenged this team.
+#You won’t see challenged_by as a column or explicit attribute in the Team class, but you can use it as a property on any Team instance.
+
+#Example usage:
+#team = Team.query.get(1)
+#for challenger in team.challenged_by:
+#    print(challenger.name)
 
 
+class Team(db.Model):
+    __tablename__ = "teams"
+    id = db.Column(db.Integer, primary_key=True)
+    points = db.Column(db.Integer)
+    name = db.Column(db.String, unique=True, nullable=False)
+    members = db.relationship('User', back_populates='team')
+    matches = db.relationship('Match', secondary=team_match, back_populates='teams')
+    challenges = db.relationship(
+        'Team',
+        secondary=team_challenge,
+        primaryjoin=id==team_challenge.c.challenger_id,
+        secondaryjoin=id==team_challenge.c.challenged_id,
+        backref='challenged_by'
+    )
+    @property
+    def rank(self):
+        if self.points is None:
+            return None  # or some default value
+        return Team.query.filter(Team.points > self.points).count() + 1
+
+
+
+class Match(db.Model):
+    __tablename__ = 'matches'
+    id = db.Column(db.Integer, primary_key=True)
+    score_winner = db.Column(db.Integer)
+    score_loser = db.Column(db.Integer)
+    winner_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    loser_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    teams = db.relationship('Team', secondary=team_match, back_populates='matches')
+
+
+class GameResult(db.Model):
+    __tablename__ = 'game_results'
+
+    id = db.Column(db.Integer, primary_key=True)
+    game = db.Column(db.String(50), nullable=False)       # e.g. 'connect4', 'minesweeper'
+    winner = db.Column(db.String(50))                     # e.g. 'player1', 'player2', or a label
+    score = db.Column(db.Integer)                         # optional numeric score
+    played_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user = db.relationship('User', foreign_keys=[user_id], backref='game_results')
+    opponent_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    opponent = db.relationship('User', foreign_keys=[opponent_id], backref='opponent_game_results')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'game': self.game,
+            'winner': self.winner,
+            'score': self.score,
+            'played_at': self.played_at,
+            'user_id': self.user_id,
+            'opponent_id': self.opponent_id,
+        }

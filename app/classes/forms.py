@@ -3,7 +3,7 @@
 # Forms let users enter information, like stories or profile details.
 
 from flask_wtf import FlaskForm  # Main form class
-from wtforms import StringField, SubmitField, TextAreaField, EmailField, FileField, HiddenField, SelectField  # Form fields
+from wtforms import StringField, IntegerField, SubmitField, TextAreaField, EmailField, FileField, HiddenField, SelectField  # Form fields
 from wtforms.validators import InputRequired  # Validator for required fields
 # Other validators can be used for more checks
 
@@ -47,7 +47,7 @@ class MilestoneForm(FlaskForm):
     name = StringField('Title', validators=[InputRequired()])
     description = TextAreaField('Description')
     due_date = StringField('Due Date')  # Could use DateField if needed
-    status = SelectField('Status', choices=[('Not Started', 'Not Started'), ('In Progress', 'In Progress'), ('Completed', 'Completed')])
+    status = SelectField('Status', choices=[("","--pick one--"),('Not Started', 'Not Started'), ('In Progress', 'In Progress'), ('Completed', 'Completed'),("Delete","Delete")])
     submit = SubmitField('Save Milestone')
 
 # Form for creating/editing a project post
@@ -59,8 +59,7 @@ class ProjPostForm(FlaskForm):
     reflection = TextAreaField('Reflection')
     discussion = TextAreaField('Discussion')
     milestone = SelectField('Milestone', choices=[])
-    image_reflection_src = StringField('Image Reflection Src')
-    image_reflection = FileField('Image Reflection')
+    image = FileField('Image Reflection')
     submit = SubmitField('Save Post')
 
 # Form for searching posts by date
@@ -69,3 +68,18 @@ class SearchDatesForm(FlaskForm):
     end_date = StringField('End Date', validators=[InputRequired()])
     submit = SubmitField('Search')
 
+class TeamForm(FlaskForm):
+    name = StringField('Team Name', validators=[InputRequired()])
+    other_player = SelectField("Other Team Member", choices=[], validate_choice=False)
+    submit = SubmitField('Submit')
+
+class TeamChallengeForm(FlaskForm):
+    challenged = SelectField("Who do you want to challenge", choices=[], validate_choice=False)
+    submit = SubmitField('Submit')
+
+class TeamMatchForm(FlaskForm):
+    winner_id = SelectField("Who won?", choices=[], validate_choice=False)
+    score_winner = IntegerField("Winner's score")
+    loser_id = SelectField("Who lost?", choices=[], validate_choice=False)
+    score_loser = IntegerField("Loser's Score")
+    submit = SubmitField('Submit')

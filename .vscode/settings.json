@@ -1,0 +1,10 @@
+{
+    "python-envs.pythonProjects": [
+        {
+            "path": ".vscode",
+            "envManager": "ms-python.python:conda",
+            "packageManager": "ms-python.python:pip",
+            "python.defaultInterpreterPath": "/home/pelon/anaconda3/envs/future/bin/python"
+        }
+    ]
+}

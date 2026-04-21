@@ -1,5 +1,4 @@
 
-
 {% extends "base.html" %}
 
 {% block body %}
@@ -53,12 +52,12 @@
 
             <div class="intention">
                 <h3>What do you intend to do today?</h3>
-                {{ form.intention(class='tmce-editor form-control') }}</b>  
                 <p class="text-danger">
                     {% for error in form.intention.errors %}
                         {{error}}
                     {% endfor %}
                 </p> 
+                {{ form.intention(class='tmce-editor form-control') }}</b>  
 
                 <h3>How confident are you that you will complete your goal?</h3>
                 {{ form.confidence(class='form-control') }}</b>  
@@ -78,6 +77,8 @@
                 </p> 
             </div>
             <div class="reflection pb-3">
+                <b>This is what you said you were going to do:</b>
+                {{thisIntention}}
                 <h3>Are you satisfied with your work today?</h3>
                 {{ form.satisfaction(class='form-control') }}</b>              
                 <p class="text-danger">
@@ -87,13 +88,21 @@
                 </p> 
 
                 <h3>What did you complete?</h3>
-                {{ form.reflection(class='tmce-editor form-control') }}</b>  
                 <p class="text-danger">
                     {% for error in form.reflection.errors %}
                         {{error}}
                     {% endfor %}
                 </p> 
+                {{ form.reflection(class='tmce-editor form-control') }}</b>  
 
+                <h3>Image (Optional)</h3>
+                <small>Upload a screen shot or take a picture showing what you did today.</small> <br>
+                {{ form.image(class='form-control') }}  
+                <p class="text-danger">
+                    {% for error in form.image.errors %}
+                        {{error}}
+                    {% endfor %}
+                </p> 
                 <br><br><br>
             </div>
 
@@ -108,8 +117,6 @@
         </style>
     <!-- Add jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- this is a generic form page.  Best way to make a new form page is to 
-copy this one and then edit it. -->
 
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" integrity="sha512-6JR4bbn8rCKvrkdoTJd/VFyXAN4CE9XMtgykPWgKiHjou56YDJxWsi90hAeMTYxNwUnKSQu9JPc3SQUg+aGCHw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -210,6 +217,65 @@ copy this one and then edit it. -->
                     reader.readAsDataURL(imageFile);
                 }
             });
+        </script>
+
+                <script type="text/javascript">
+        // Image resize before upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const imgInput = document.getElementById('image-input');
+            if (!imgInput) return;
+            imgInput.addEventListener('change', function (e) {
+                if (e.target.files && e.target.files[0]) {
+                    let imageFile = e.target.files[0];
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        var img = document.createElement("img");
+                        img.src = event.target.result;
+                        img.onload = function () {
+                            var canvas = document.createElement("canvas");
+                            var ctx = canvas.getContext("2d");
+                            // Set max width/height
+                            var MAX_WIDTH = 800;
+                            var MAX_HEIGHT = 800;
+                            var width = img.width;
+                            var height = img.height;
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height = height * (MAX_WIDTH / width);
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width = width * (MAX_HEIGHT / height);
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+                            // Try quality settings to keep under 1MB
+                            let quality = 0.8;
+                            let resizedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                            while (resizedDataUrl.length > 1024 * 1024 && quality > 0.1) {
+                                quality -= 0.1;
+                                resizedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                            }
+                            // Replace file input with resized image
+                            fetch(resizedDataUrl)
+                                .then(res => res.blob())
+                                .then(blob => {
+                                    const resizedFile = new File([blob], imageFile.name, {type: 'image/jpeg'});
+                                    // Create a DataTransfer to update the input
+                                    const dt = new DataTransfer();
+                                    dt.items.add(resizedFile);
+                                    imgInput.files = dt.files;
+                                });
+                        };
+                    };
+                    reader.readAsDataURL(imageFile);
+                }
+            });
+        });
         </script>
   
 

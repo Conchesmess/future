@@ -18,6 +18,16 @@
             OUSD Email: {{current_user.email_ousd}} <br>
             Personal Email: {{current_user.email_personal}} <br>
             Mobile: {{current_user.mobile}} <br>
+            {% if current_user.team %}
+                Team: <a href="/team/{{current_user.team.id}}">{{current_user.team.name}}</a> <br>
+                Rank: {{current_user.team.rank}} <br>
+                Team Partner: 
+                {% for member in current_user.team.members %}
+                    {% if member != current_user %}
+                        {{member.fname}} {{member.lname}} <br>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
 
         </div>
         

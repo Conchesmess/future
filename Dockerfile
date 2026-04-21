@@ -18,5 +18,7 @@ EXPOSE 8080
 ENV FLASK_APP=main.py
 ENV PYTHONUNBUFFERED=1
 
-# Start the app (Cloud Run expects $PORT)
-CMD ["python", "main.py"]
+# Start the app with Gunicorn (threaded to handle concurrent CDN proxy requests)
+# --threads 8 allows up to 8 concurrent CDN fetches per worker without blocking
+# --timeout 120 gives large WASM files (12MB+) time to download through the proxy
+CMD ["gunicorn", "--workers", "2", "--threads", "8", "--timeout", "120", "--bind", "0.0.0.0:8080", "main:app"]

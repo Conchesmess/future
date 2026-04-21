@@ -5,3 +5,5 @@ from app.routes.login import *
 from app.routes.story import *
 from app.routes.scopes import *
 from app.routes.project import *
+from app.routes.team import *
+from app.routes.apps import *

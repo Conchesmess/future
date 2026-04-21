@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+
+{% block body %}
+    <div class="container">
+        <h1>Challenge Form</h1>
+        {% for field in form.errors %}
+            {% for error in form.errors[field] %}
+                <div class="alert alert-error">
+                    <strong>Error!</strong>{{field}}: {{error}}
+                </div>
+            {% endfor %}
+        {% endfor %}
+        <h3>{{current_user.team.name}} Challenges...</h3>
+        <form method=post>
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.challenged(class='form-control') }} <br>
+            </div>
+            {{form.submit(class='form-control btn btn-secondary')}}
+            </table>
+        </form>
+    </div>
+{% endblock %}

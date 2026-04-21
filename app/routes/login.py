@@ -60,6 +60,12 @@ def credentials_to_dict(credentials):
         'scopes': credentials.scopes
     }
 
+@app.after_request
+def add_headers(response):
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
+    return response
+
 @app.before_request
 def before_request():
 

@@ -12,13 +12,14 @@
     <h1>{{ proj.owner.fname }}'s Project</h1>
 {% endif %}
 
+<a data-toggle="tooltip" data-placement="top" title="Edit Project" href="/project/edit/{{proj.id}}"><img width='20' src="/static/edit.png"></a>
+<a data-toggle="tooltip" data-placement="top" title="Delete Project" href="/project/delete/{{proj.id}}"><img width='20' src="/static/delete.png"></a> <br>
+
 <h4>{{proj.name}}</h4>
 <b>Course:</b> {{proj.course}} <br>
 <b>Created:</b> {{moment(proj.createDateTime).calendar()}} <br>
 <b>Owner:</b> {{proj.owner.fname}} {{proj.owner.lname}} <br>
 <b>Status:</b> {{proj.status}} <br>
-
-
 <b>Learning Materials:</b> <br> {{proj.learning_materials|safe}} <br>
 <b>Product:</b> <br> {{proj.product|safe}} <br>
 
@@ -30,21 +31,17 @@
     Milestones are major accomplishments along the way to completing your project.
 <br>
 
-    {% for m in proj.milestones %}
+    {% for m in proj.milestones | sort(attribute='oid', reverse=true) %}
         {% if current_user == proj.owner %}
             <a data-toggle="tooltip" data-placement="top" title="Edit Milestone" href="/project/milestone/edit/{{proj.id}}/{{m.oid}}"><img width='20' src="/static/edit.png"></a>
             <a data-toggle="tooltip" data-placement="top" title="Delete Milestone" href="/project/milestone/delete/{{proj.id}}/{{m.oid}}"><img width='20' src="/static/delete.png"></a>
             <a data-toggle="tooltip" data-placement="top" title="Mark Milestone as Complete" href="/project/milestone/reflection/{{proj.id}}/{{m.oid}}"><img width="30" src="/static/task.png"></a>
         {% endif %}
             <br>
-            <h4>#{{m.number}}: {{m.name}}</h4>
+            <h4>Milestone #{{loop.index}}: {{m.name}}</h4>
             <b>Description:</b><br>
             <b>Status:</b> {{m.status}} <br>
-            {{m.desc|safe}}
-            {# {% if m.reflection %}
-                <b>Reflection:</b> <br>
-                {{m.reflection|safe}} <br>
-            {% endif %} #}
+            {{m.description|safe}}
             <hr>
                 <h5>Intention/Reflection/Discussion <a href="/project/post/new/{{proj.id}}/{{m.oid}}"><img src="/static/new.png" width="20"></a> </h5>
                 {% if m.posts %}
@@ -60,6 +57,7 @@
                         <a href="/project/post/delete/{{post.id}}"><img src="/static/delete.png" width="20"></a>
                         <br>
                         {% if post.post_type.lower() == "discussion" %}
+                            {{post.author}} <br>
                             {{post.discussion | safe}}
                         {% endif %}
                         {% if post.post_type.lower() == "intention" %}
@@ -69,10 +67,9 @@
                         {% if post.post_type.lower() == "reflection" %}
                             Satisfaction: {{post.satisfaction}} <br>
                             Reflection: {{post.reflection | safe}}
-                            {% if post.image_reflection_src %}
-                                {# <img class="img-thumbnail img-fluid" src="data:image;base64,{{base64encode(post.image_reflection.read())}}"> <br> #}
-                                <img src="{{post.image_reflection_src}}">
-                                {% endif %} 
+                            {% if post.image %}
+                                <img class="img-thumbnail img-fluid" width='100' src="data:image;base64,{{base64encode(post.image)}}"> <br>
+                            {% endif %} 
                         {% endif %}    
                             </div>
                     {% endfor %}
@@ -107,10 +104,11 @@
 
         <form method=post>
             {{ form.hidden_tag() }}
-            Describe what work you will have done when this milestone is complete. Include images or links to any resources (online tutorials, tools, similar project milestones) if you have them.: <br>
+            What question are you trying to answer? <br>
+            <small>examples: "How do I get started?" "How much electricity do I need to charge a phone?" "How do I 3d model something simple like a cube?" </small>
             {{ form.description(class='tmce-editor') }} <br>
             <h3>Name:</h3>
-            Give it a descriptive name like "Getting started" or "Design the final product" or "Practice" or "Finish the tutorial"
+            Give this milestone a descriptive name like "Getting started" or "Design the final product" or "Practice" or "Finish the tutorial"
             {{ form.name(class='form-control') }} <br>
             <h3>Status:</h3>
             The initial status will always be "In Progress" <br>

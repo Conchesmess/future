@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<iframe 
+    src="{{ url_for('static', filename='mankala/index.html') }}"
+    width="1024" 
+    height="600"
+    frameborder="0"
+    allow="cross-origin-isolated">
+</iframe>
+
+{% endblock %}
