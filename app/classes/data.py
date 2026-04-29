@@ -258,3 +258,12 @@ class GameResult(db.Model):
             'user_id': self.user_id,
             'opponent_id': self.opponent_id,
         }
+    
+class Announcement(db.Model):
+    __tablename__ = 'anouncements'
+
+    id = db.Column(db.Integer, primary_key=True)
+    announcement = db.Column(db.Text())
+    datetime = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user = db.relationship('User', foreign_keys=[user_id])

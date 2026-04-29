@@ -13,31 +13,31 @@ import datetime as dt
 from sqlalchemy.orm.exc import NoResultFound
 from google import genai
 
-def get_gemini_feedback(student_text,post_type):
-    # api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
-    GEMINI_API_KEY = "AIzaSyBwAdlInY_os7APTvjuakeKWJHCcNrYmKg"
-    # headers = {"Content-Type": "application/json"}
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    if post_type == "intention":
-        prompt = f"Evaluate the level of detail in this student intention. The student intention \
-            does not need to be long but it does need to include specific and measurable outcomes \
-            that the student can reflect on in a second post at the end of the day. Here is an \
-            example of a good student intention 'I will watch a youtube video for beginners on \
-            Freecad - https://www.youtube.com/watch?v=jULWgMV9_TM - I hope to be able to make \
-            something simple that I can actually print. The video is an hour long and class is \
-            two hours so I should be able to do it.' Keep the response short and give the \
-            student feedback on a red, yellow, green scale where red is bad and green is good. \
-            The response text should use HTML markup for formatting. The response should \
-            begin with the word 'red', 'yellow', or 'green'.  Please markup these words \
-            with the color they describe and wrapped in h3 tags. : '{student_text}'. \
-            Give feedback for improvement."
-    elif post_type == "reflection":
-        prompt = student_text
-    response = client.models.generate_content(
-        model="gemini-2.5-flash", 
-        contents=prompt
-        )
-    return response.text
+# def get_gemini_feedback(student_text,post_type):
+#     # api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+#     GEMINI_API_KEY = "AIzaSyBwAdlInY_os7APTvjuakeKWJHCcNrYmKg"
+#     # headers = {"Content-Type": "application/json"}
+#     client = genai.Client(api_key=GEMINI_API_KEY)
+#     if post_type == "intention":
+#         prompt = f"Evaluate the level of detail in this student intention. The student intention \
+#             does not need to be long but it does need to include specific and measurable outcomes \
+#             that the student can reflect on in a second post at the end of the day. Here is an \
+#             example of a good student intention 'I will watch a youtube video for beginners on \
+#             Freecad - https://www.youtube.com/watch?v=jULWgMV9_TM - I hope to be able to make \
+#             something simple that I can actually print. The video is an hour long and class is \
+#             two hours so I should be able to do it.' Keep the response short and give the \
+#             student feedback on a red, yellow, green scale where red is bad and green is good. \
+#             The response text should use HTML markup for formatting. The response should \
+#             begin with the word 'red', 'yellow', or 'green'.  Please markup these words \
+#             with the color they describe and wrapped in h3 tags. : '{student_text}'. \
+#             Give feedback for improvement."
+#     elif post_type == "reflection":
+#         prompt = student_text
+#     response = client.models.generate_content(
+#         model="gemini-2.5-flash", 
+#         contents=prompt
+#         )
+#     return response.text
 
 
 @app.route('/project/post/new/<pid>/<mid>', methods=['GET','POST'])
@@ -58,67 +58,58 @@ def projectPostNew(pid=None,mid=None):
         return redirect(url_for('project',pid=pid))
     
     i = -1
+    # This is the most recently added milestone
     thisMilestone = milestones[-1]
+
     while True:
-        if len(thisMilestone.posts) != 0:
-            if len(thisMilestone.posts) == 1 and thisMilestone.posts[0].post_type.lower() != 'intention':
-                flash("You must start an Intention.")
-                return redirect(url_for('project',pid=pid))
+        # if there are more than 0 posts on this milestone check to see what is the last post that was not a discussion
+        if len(thisMilestone.posts) > 0:
             if thisMilestone.posts[i].post_type.lower()!='discussion':
                 post = thisMilestone.posts[i]
                 if post.post_type.lower()=='intention':
                     thisIntention = post.intention
                     thisReflection = None
                 elif post.post_type.lower()=='reflection':
+                    thisReflection = post.reflection
                     thisIntention=None
-                    thisReflection=post.reflection
                 break
             else:
                 i = i - 1
         else:
+            thisIntention=None
             thisReflection=None
-            thisMilestone=None
             break
 
     fail = 0
+
+    if thisIntention == None:
+        form.post_type.choices = [("Intention","Intention"),("Discussion","Discussion")]
+    elif thisReflection == None:
+        form.post_type.choices = [("Reflection","Reflection"),("Discussion","Discussion")]
 
     if form.validate_on_submit():
         now = dt.datetime.now()
         thisMilestone = Milestone.query.get(mid)
 
         if form.post_type.data != "Discussion":
+            # find all post made today that are the same post type as the submitted form
             posts = ProjPost.query.filter_by(project_id=project.id, post_type=form.post_type.data).filter(db.func.date(ProjPost.createDateTime) == now.date()).all()
 
-            if len(posts) > 1:
-                flash(f'You have more than one post for this day. This should not happen. Please delete one','danger')
+            if len(posts) > 0:
+                flash(f'You already have a {form.post_type} post for today. Either delete one or make a different type of post','danger')
                 return redirect(url_for('project',pid=pid))
-            elif len(thisMilestone.posts)>0 and form.post_type.data.lower() == thisMilestone.posts[-1].post_type.lower():
-                flash(f"Your last post was a {post.post_type} and so is this new post. Delete or edit the last post or change the type of the new post.",'danger')
+            # if the last 
+            elif (thisIntention and form.post_type.data.lower() == "intention") or (thisReflection and form.post_type.data.lower() == "intention"):
+                flash(f"Your last post was a {form.post_type.data.lower()} and so is this new post. Delete or edit the last post or change the type of the new post.",'danger')
                 return redirect(url_for('project',pid=pid))
-            elif len(thisMilestone.posts) == 0 and form.post_type.data.lower() == "reflection":
+            elif not thisIntention and not thisReflection and form.post_type.data.lower() == "reflection":
                 flash("You can't create a reflection until you have an intention.","danger")
                 return redirect(url_for('project',pid=pid))
 
         if form.post_type.data.lower() == "reflection" and thisReflection != None:
-            flash("You can't post a reflection if you haven't posted an intention.","danger")
+            flash("You can't post a reflection until you have posted an intention to reflect on.","danger")
             return redirect(url_for('project',pid=pid))
-        elif form.post_type.data.lower() == "reflection" and thisReflection == None:
-            reflection_prompt = f"Please evaluate if this student reflection, '{form.reflection.data}',\
-                is a good reflection on this student intention, '{thisIntention}'. It shold be detailed and \
-                explain what specifically the student completed and it should refer to the student intention. \
-                Your response should be in HTML markup and it should begin with a single word rating of 'green',\
-                'yellow' or 'red'. 'red' is bad. 'yellow' is ok. 'green' is good. Red should be rendered in \
-                the color ##ff0000. Yellow in the color #ffff00 and green in the color #90EE90. They should \
-                also be wrapped in <h3> tags."
-            feedback = get_gemini_feedback(reflection_prompt,'reflection')
-            if "red" in feedback[:100].lower():
-                feedback = Markup(feedback)
-                form.reflection.errors.append(feedback)
-                fail=1
-                flash(feedback)
-                flash(Markup(f"This feedback was based in this Intention: {thisIntention}"))
-            else:
-                form.reflection.data = form.reflection.data + feedback
+
 
 
 
@@ -129,14 +120,7 @@ def projectPostNew(pid=None,mid=None):
             if len(form.intention.data) == 0:
                 form.intention.errors.append("Intention is required if your post type is Intention.")
                 fail=1
-            else:
-                feedback = get_gemini_feedback(form.intention.data,'intention')
-                form.intention.data = form.intention.data + feedback
-                if "red" in feedback[:100].lower():
-                    feedback = Markup(feedback)
-                    form.intention.errors.append(feedback)
-                    fail=1
-                    flash(feedback)
+
 
         elif form.post_type.data.lower() == "reflection":
             if int(form.satisfaction.data) == 0:
@@ -168,11 +152,12 @@ def projectPostNew(pid=None,mid=None):
             newPost.image = form.image.data.read()
         db.session.commit()
         return redirect(url_for("project", pid=pid))
-    try:
+    if thisIntention is not None:
         thisIntention = Markup(thisIntention)
-    except:
-        thisIntention = None
-    return render_template("projects/project_post_form.html", form=form, project=project, thisIntention=thisIntention)
+    if thisReflection is not None:
+        thisReflection = Markup(thisReflection)
+
+    return render_template("projects/project_post_form.html", form=form, project=project, thisReflection=thisReflection, thisIntention=thisIntention)
 
 
 @app.route('/project/post/delete/<postID>')
@@ -366,7 +351,7 @@ def projectMsDel(pid,mid):
         return redirect(url_for('project', pid=pid))
 
 
-    if milestone.owner_id == None or milestone.owner.id == current_user.id:
+    if milestone.owner_id == None or milestone.owner_id == current_user.id:
         # Check if this is the last milestone and its status is 'Delete'
         if milestone.status == 'Delete':
             db.session.delete(milestone)

@@ -1,9 +1,13 @@
 import os
 import requests
-from flask import redirect, render_template, abort, send_from_directory, Response, request, jsonify, flash
+from flask import redirect, render_template, abort, send_from_directory, Response, request, jsonify, flash, url_for
 from flask_login import login_required, current_user
 from app import app, db
-from app.classes.data import GameResult, User, GameResult
+from app.classes.data import GameResult, User, GameResult, Announcement
+from app.classes.forms import TextAreaForm
+from datetime import datetime, timezone
+from markupsafe import Markup
+
 
 
 # ── Generic pygbag game hosting ──────────────────────────────────────────────
@@ -120,7 +124,7 @@ def pygbag_cdn_proxy(filename):
 
 # ── Game result API ───────────────────────────────────────────────────────────
 
-VALID_GAMES = {'connect4', 'minesweeper', 'mankala', 'asteroids'}
+VALID_GAMES = {'connect4', 'minesweeper', 'mankala', 'asteroids', 'brianna-er'}
 
 @app.route('/api/users')
 @login_required
@@ -178,3 +182,37 @@ def save_game_result():
 def gameresults():
     results = GameResult.query.order_by(GameResult.game, GameResult.score.desc(), GameResult.played_at).all()
     return render_template('game_results.html',results=results)
+
+@app.route('/announcement_new', methods=['GET', 'POST'])
+@login_required
+def announcement_new():
+    form = TextAreaForm()
+    try:
+        thisAnnouncement = db.one_or_404(db.select(Announcement).filter_by(id=1))
+    except:
+        thisAnnouncement = None
+            
+    if form.validate_on_submit() and not thisAnnouncement:
+        newAnnouncement = Announcement(
+            announcement = form.content.data,
+            datetime = datetime.now(timezone.utc)
+        )
+        db.session.add(newAnnouncement)
+        db.session.commit()
+        return redirect(url_for('announcement'))
+
+    if form.validate_on_submit() and thisAnnouncement:
+        thisAnnouncement.announcement = form.content.data
+        thisAnnouncement.datetime = datetime.now(timezone.utc)
+        db.session.add(thisAnnouncement)
+
+        db.session.commit()
+        return redirect(url_for('announcement'))
+    
+    return render_template('announcement_form.html',form=form)
+
+@app.route('/announcement')
+@login_required
+def announcement():
+    announcement = db.one_or_404(db.select(Announcement).filter_by(id=1))
+    return render_template('announcement.html', announcement=announcement.announcement)

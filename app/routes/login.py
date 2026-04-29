@@ -23,21 +23,6 @@ import google_auth_oauthlib.flow
 # Set up Google login
 # Google login info
 
-# TODO delete this I think
-#GOOGLE_CLIENT_CONFIG = {
-#    "web": {
-#        "client_id": os.environ['future_google_client_id'],
-#        "client_secret": os.environ['future_google_client_id'],
-#        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-#        "token_uri": "https://oauth2.googleapis.com/token",
-#        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-#        "redirect_uris": [
-#            "https://127.0.0.1:5000/oauth2callback",
-#            "https://future-558360858286.us-west1.run.app/oauth2callback",
-#            "https://future.ccpa.ninja/oauth2callback"
-#        ]
-#    }
-#}
 
 oauth = OAuth(app)
 

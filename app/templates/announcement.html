@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container-fluid d-flex flex-column" style="height: calc(100vh - 56px);">
+
+  {# Row 1: two equal columns, takes up half the available height #}
+  <div class="row flex-fill">
+    <div class="col-6 border d-flex flex-column align-items-center justify-content-center">
+      <div id="clock" class="display-1 fw-bold" style="font-size: 8rem; letter-spacing: 0.05em;"></div>
+      <div id="date-display" class="display-6 mt-2 text-muted"></div>
+    </div>
+    <div class="col-6 border d-flex align-items-center justify-content-center">
+      <img src="{{ url_for('static', filename='CCPA.jpg') }}" alt="CCPA" class="img-fluid" style="max-height: 100%;">
+    </div>
+  </div>
+
+  {# Row 2: single full-width column, takes up the other half #}
+  <div class="row flex-fill">
+    <div class="col-12 border d-flex align-items-center justify-content-center p-4">
+      <div class="display-3 fw-bold text-center m-0">{{ announcement | safe }}</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+
+    // Time: HH:MM:SS
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+
+    // Date: Wednesday, April 22, 2026
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('date-display').textContent = now.toLocaleDateString('en-US', options);
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
+{% endblock %}

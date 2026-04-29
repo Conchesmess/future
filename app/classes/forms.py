@@ -68,6 +68,11 @@ class SearchDatesForm(FlaskForm):
     end_date = StringField('End Date', validators=[InputRequired()])
     submit = SubmitField('Search')
 
+# Simple single textarea form
+class TextAreaForm(FlaskForm):
+    content = TextAreaField('Content')
+    submit = SubmitField('Submit')
+
 class TeamForm(FlaskForm):
     name = StringField('Team Name', validators=[InputRequired()])
     other_player = SelectField("Other Team Member", choices=[], validate_choice=False)
@@ -82,4 +87,8 @@ class TeamMatchForm(FlaskForm):
     score_winner = IntegerField("Winner's score")
     loser_id = SelectField("Who lost?", choices=[], validate_choice=False)
     score_loser = IntegerField("Loser's Score")
+    submit = SubmitField('Submit')
+
+class textAreaForm(FlaskForm):
+    text = TextAreaField('Content', validators=[InputRequired()])
     submit = SubmitField('Submit')

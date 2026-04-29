@@ -10,7 +10,6 @@ from flask_login import LoginManager  # For login/logout
 from functools import wraps  # For decorators
 from flask_moment import Moment  # For showing dates/times
 from markupsafe import Markup  # For safe HTML
-from datetime import datetime  # For dates/times
 import base64
 
 app = Flask(__name__)

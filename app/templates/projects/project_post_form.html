@@ -43,6 +43,11 @@
             </p> 
 
             <h3>Type of post</h3> 
+            {% if not thisIntention %}
+            This post should be an Intention.
+            {% elif not thisReflection %}
+            Your last post was an intention so this one should be a reflection on that intention which should be pasted below.
+            {% endif %}
             {{ form.post_type(class='form-control', id='postType', onchange="int_ref()") }}
             <p class="text-danger">
                 {% for error in form.post_type.errors %}
@@ -77,7 +82,7 @@
                 </p> 
             </div>
             <div class="reflection pb-3">
-                <b>This is what you said you were going to do:</b>
+                <b>This is what you said you were going to do in your last Intention:</b>
                 {{thisIntention}}
                 <h3>Are you satisfied with your work today?</h3>
                 {{ form.satisfaction(class='form-control') }}</b>              
